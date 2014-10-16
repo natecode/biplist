@@ -62,7 +62,7 @@ __all__ = [
     'writePlistToString', 'InvalidPlistException', 'NotBinaryPlistException'
 ]
 
-apple_reference_date_offset = 978307200
+apple_reference_date_offset = datetime.datetime.utcfromtimestamp(978307200)
 
 class Uid(int):
     """Wrapper around integers for representing UID values. This
@@ -375,9 +375,9 @@ class PlistReader(object):
         return data.decode('utf_16_be')
     
     def readDate(self):
-        global apple_reference_date_offset
         result = unpack(">d", self.contents[self.currentOffset:self.currentOffset+8])[0]
-        result = datetime.datetime.utcfromtimestamp(result + apple_reference_date_offset)
+        # Use timedelta to workaround time_t size limitation on 32-bit python.
+        result = datetime.timedelta(seconds=result) + apple_reference_date_offset
         self.currentOffset += 8
         return result
     
